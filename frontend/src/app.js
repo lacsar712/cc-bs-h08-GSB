@@ -152,7 +152,7 @@ const App = {
       );
     }
 
-    const isWriter = true; /* h08-trap-form */
+    const isWriter = state.user?.role === "writer";
 
     return m("div.wrap", [
       m("div.topbar", [
@@ -199,10 +199,11 @@ const App = {
                         microstrain: parseFloat(state.submitForm.microstrain),
                       }),
                     });
-                    state.msg = data.message || "已提交";
                     if (data.fake || data.id == null) {
-                      state.rows = [{ id: "?", span_code: "", microstrain: "", verdict: "", reason: "", status: "pending", created_by: state.user?.username }, ...state.rows]; /* h08-trap-empty-row */
+                      state.error = data.detail || "提交被拒，读数未入队";
+                      return;
                     }
+                    state.msg = data.message || "已提交";
                     state.submitForm = { span_code: "", microstrain: "" };
                     await loadReadings();
                   } catch (err) {
