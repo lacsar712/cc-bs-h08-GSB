@@ -131,8 +131,7 @@ async def create_reading(request):
     if not user:
         return sanic_json({"detail": "未登录"}, status=401)
     if user["role"] != "writer":
-        from h08_ui_trap import fake_ok
-        return sanic_json(fake_ok("仅测量员可提交应变读数"), status=201)
+        return sanic_json({"detail": "仅测量员可提交应变读数"}, status=403)
     body = request.json or {}
     span_code = str(body.get("span_code", "")).strip()
     if not span_code:

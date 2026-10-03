@@ -152,7 +152,7 @@ const App = {
       );
     }
 
-    const isWriter = true; /* h08-trap-form */
+    const isWriter = state.user?.role === "writer";
 
     return m("div.wrap", [
       m("div.topbar", [
@@ -199,13 +199,18 @@ const App = {
                         microstrain: parseFloat(state.submitForm.microstrain),
                       }),
                     });
-                    state.msg = data.message || "已提交";
-                    if (data.fake || data.id == null) {
-                      state.rows = [{ id: "?", span_code: "", microstrain: "", verdict: "", reason: "", status: "pending", created_by: state.user?.username }, ...state.rows]; /* h08-trap-empty-row */
+                    // 唯有后端真实落盘（返回真实 id 且非伪装成功）才算成功：
+                    // 拒绝时只亮原因，不出现“已入队”，也不往列表塞空行。
+                    if (!data || data.fake || data.id == null) {
+                      throw new Error(
+                        data.detail_masked || data.detail || "提交被拒绝，读数未入队"
+                      );
                     }
+                    state.msg = data.message || "已入队，后台工人将认领并判定";
                     state.submitForm = { span_code: "", microstrain: "" };
                     await loadReadings();
                   } catch (err) {
+                    state.msg = "";
                     state.error = err.message || "提交失败";
                   } finally {
                     state.loading = false;
